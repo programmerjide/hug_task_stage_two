@@ -1,0 +1,316 @@
+definitions:
+  dto.AddUserToOrganisationRequestDto:
+    properties:
+      userId:
+        type: string
+    required:
+    - userId
+    type: object
+  dto.CreateOrganisationRequest:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  dto.DefaultApiResponse:
+    properties:
+      data: {}
+      message:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.ErrorResponseDto:
+    properties:
+      message:
+        type: string
+      status:
+        type: string
+      statusCode:
+        type: integer
+    type: object
+  dto.OrganisationResponse:
+    properties:
+      description:
+        type: string
+      name:
+        type: string
+      orgId:
+        type: string
+    type: object
+  dto.OrganisationsResponse:
+    properties:
+      organisations:
+        items:
+          $ref: '#/definitions/dto.OrganisationResponse'
+        type: array
+    type: object
+  dto.UserLoginDto:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.UserSignupRequestDto:
+    properties:
+      email:
+        type: string
+      firstName:
+        maxLength: 50
+        minLength: 3
+        type: string
+      lastName:
+        maxLength: 50
+        minLength: 3
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    required:
+    - email
+    - firstName
+    - lastName
+    - password
+    type: object
+info:
+  contact: {}
+paths:
+  /:
+    get:
+      consumes:
+      - application/json
+      description: Returns a hello world message
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Home endpoint
+      tags:
+      - Home
+  /api/organisations:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of all organisations
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.OrganisationsResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+      security:
+      - BearerAuth: []
+      summary: Get all organisations
+      tags:
+      - Organisation
+    post:
+      consumes:
+      - application/json
+      description: Create a new organisation
+      parameters:
+      - description: Create Organisation Request
+        in: body
+        name: organisation
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateOrganisationRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DefaultApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+      security:
+      - BearerAuth: []
+      summary: Create a new organisation
+      tags:
+      - Organisation
+  /api/organisations/{orgId}:
+    get:
+      consumes:
+      - application/json
+      description: Get organisation information by organisation ID
+      parameters:
+      - description: Organisation ID
+        in: path
+        name: orgId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.OrganisationsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+      security:
+      - BearerAuth: []
+      summary: Get organisation by ID
+      tags:
+      - Organisation
+  /api/organisations/{orgId}/users:
+    post:
+      consumes:
+      - application/json
+      description: Add a user to an organisation by organisation ID and user ID
+      parameters:
+      - description: Organisation ID
+        in: path
+        name: orgId
+        required: true
+        type: string
+      - description: Add User to Organisation Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.AddUserToOrganisationRequestDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DefaultApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+      security:
+      - BearerAuth: []
+      summary: Add a user to an organisation
+      tags:
+      - Organisation
+  /api/users/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get user information by user ID
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DefaultApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+      security:
+      - BearerAuth: []
+      summary: Get a user by ID
+      tags:
+      - User
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user with email and password
+      parameters:
+      - description: User Login Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserLoginDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.DefaultApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+      summary: Login a user
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user with default organisation
+      parameters:
+      - description: User Signup Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UserSignupRequestDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.DefaultApiResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/dto.ErrorResponseDto'
+      summary: Register a new user
+      tags:
+      - Auth
+swagger: "2.0"
