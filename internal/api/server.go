@@ -13,7 +13,7 @@ import (
 	"log"
 )
 
-func StartServer(config config.AppConfig) {
+func StartServer(config config.AppConfig) *fiber.App {
 	app := fiber.New()
 
 	// Setup CORS
@@ -43,6 +43,14 @@ func StartServer(config config.AppConfig) {
 	setupRoutes(restHandler)
 
 	app.Listen(config.ServerPort)
+	// Listen and serve
+	//go func() {
+	//	if err := app.Listen(config.ServerPort); err != nil {
+	//		log.Fatalf("Error starting server: %v", err)
+	//	}
+	//}()
+
+	return app
 }
 
 func setupRoutes(rh *rest.RestHandler) {

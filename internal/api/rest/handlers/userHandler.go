@@ -4,13 +4,16 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	"hng_stage_two_task/config"
+	_ "hng_stage_two_task/docs"
 	"hng_stage_two_task/internal/api/rest"
 	"hng_stage_two_task/internal/dto"
 	"hng_stage_two_task/internal/helper"
 	"hng_stage_two_task/internal/repository"
 	"hng_stage_two_task/internal/service"
 	"hng_stage_two_task/internal/utils"
+
 	"log"
 	"net/http"
 	"reflect"
@@ -22,6 +25,20 @@ type UserHandler struct {
 	validate *validator.Validate
 }
 
+// SetupUserRoutes @Golang User/Organization API
+// @version 1.0
+// @description This is hng stage two task.
+// @termsOfService http://swagger.io/terms/
+// @contact.name @DevOlajide
+// @contact.email programmerolajide@gmail.com
+// @license.name Apache 2.0
+// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @host localhost:8098
+// @BasePath /
+// SetupUserRoutes @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter your bearer token in the format: Bearer <token>
 func SetupUserRoutes(rh *rest.RestHandler) {
 
 	app := rh.App
@@ -40,6 +57,8 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 	}
 
 	app.Get("/", handler.Home)
+	// Serve Swagger UI
+	app.Get("/swagger/*", swagger.HandlerDefault) // default
 
 	publicRoutes := app.Group("/auth")
 
@@ -58,12 +77,31 @@ func SetupUserRoutes(rh *rest.RestHandler) {
 
 }
 
+// Home godoc
+// @Summary Home endpoint
+// @Description Returns a hello world message
+// @Tags Home
+// @Accept json
+// @Produce json
+// @Success 200 {object} map[string]string
+// @Router / [get]
 func (h *UserHandler) Home(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(fiber.Map{
 		"home": "Hello world",
 	})
 }
 
+// Register godoc
+// @Summary Register a new user
+// @Description Register a new user with default organisation
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param user body dto.UserSignupRequestDto true "User Signup Request"
+// @Success 201 {object} dto.DefaultApiResponse
+// @Failure 400 {object} dto.ErrorResponseDto
+// @Failure 422 {object} dto.ErrorResponseDto
+// @Router /auth/register [post]
 func (h *UserHandler) Register(ctx *fiber.Ctx) error {
 	user := dto.UserSignupRequestDto{}
 	if err := ctx.BodyParser(&user); err != nil {
@@ -155,6 +193,17 @@ func (h *UserHandler) Register(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusCreated).JSON(response)
 }
 
+// Login godoc
+// @Summary Login a user
+// @Description Login a user with email and password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param user body dto.UserLoginDto true "User Login Request"
+// @Success 200 {object} dto.DefaultApiResponse
+// @Failure 400 {object} dto.ErrorResponseDto
+// @Failure 401 {object} dto.ErrorResponseDto
+// @Router /auth/login [post]
 func (h *UserHandler) Login(ctx *fiber.Ctx) error {
 	loginDto := dto.UserLoginDto{}
 
@@ -244,6 +293,18 @@ func (h *UserHandler) Login(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(response)
 }
 
+// GetUser godoc
+// @Summary Get a user by ID
+// @Description Get user information by user ID
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param id path string true "User ID"
+// @Success 200 {object} dto.DefaultApiResponse
+// @Failure 400 {object} dto.ErrorResponseDto
+// @Failure 404 {object} dto.ErrorResponseDto
+// @Security BearerAuth
+// @Router /api/users/{id} [get]
 func (h *UserHandler) GetUser(ctx *fiber.Ctx) error {
 	// Extract the id from params
 	userID := ctx.Params("id")
@@ -310,6 +371,16 @@ func (h *UserHandler) GetUser(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(response)
 }
 
+// GetOrganisations godoc
+// @Summary Get all organisations
+// @Description Get a list of all organisations
+// @Tags Organisation
+// @Accept json
+// @Produce json
+// @Success 200 {array} dto.OrganisationsResponse
+// @Failure 400 {object} dto.ErrorResponseDto
+// @Security BearerAuth
+// @Router /api/organisations [get]
 func (h *UserHandler) GetOrganisations(ctx *fiber.Ctx) error {
 	// Get the current logged-in user from token
 	user := h.svc.Auth.GetCurrentUser(ctx)
@@ -339,18 +410,18 @@ func (h *UserHandler) GetOrganisations(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(response)
 }
 
-func (h *UserHandler) GetOrganisation(ctx *fiber.Ctx) error {
-
-	response := dto.DefaultApiResponse{
-		BaseResponse: dto.BaseResponse[any]{
-			Status:  config.SUCCESS.Code,
-			Message: config.SUCCESS.Description,
-			Data:    nil,
-		},
-	}
-	return ctx.Status(http.StatusOK).JSON(response)
-}
-
+// GetOrganisationByOrgId godoc
+// @Summary Get organisation by ID
+// @Description Get organisation information by organisation ID
+// @Tags Organisation
+// @Accept json
+// @Produce json
+// @Param orgId path string true "Organisation ID"
+// @Success 200 {object} dto.OrganisationsResponse
+// @Failure 400 {object} dto.ErrorResponseDto
+// @Failure 404 {object} dto.ErrorResponseDto
+// @Security BearerAuth
+// @Router /api/organisations/{orgId} [get]
 func (h *UserHandler) GetOrganisationByOrgId(ctx *fiber.Ctx) error {
 	// Extract the orgId from params
 	orgID := ctx.Params("orgId")
@@ -396,6 +467,18 @@ func (h *UserHandler) GetOrganisationByOrgId(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusOK).JSON(response)
 }
 
+// CreateOrganisation godoc
+// @Summary Create a new organisation
+// @Description Create a new organisation
+// @Tags Organisation
+// @Accept json
+// @Produce json
+// @Param organisation body dto.CreateOrganisationRequest true "Create Organisation Request"
+// @Success 201 {object} dto.DefaultApiResponse
+// @Failure 400 {object} dto.ErrorResponseDto
+// @Failure 422 {object} dto.ErrorResponseDto
+// @Security BearerAuth
+// @Router /api/organisations [post]
 func (h *UserHandler) CreateOrganisation(ctx *fiber.Ctx) error {
 	// Get the current logged-in user from token
 	user := h.svc.Auth.GetCurrentUser(ctx)
@@ -479,6 +562,19 @@ func (h *UserHandler) CreateOrganisation(ctx *fiber.Ctx) error {
 	return ctx.Status(http.StatusCreated).JSON(response)
 }
 
+// AddUserToOrganisation godoc
+// @Summary Add a user to an organisation
+// @Description Add a user to an organisation by organisation ID and user ID
+// @Tags Organisation
+// @Accept json
+// @Produce json
+// @Param orgId path string true "Organisation ID"
+// @Param user body dto.AddUserToOrganisationRequestDto true "Add User to Organisation Request"
+// @Success 201 {object} dto.DefaultApiResponse
+// @Failure 400 {object} dto.ErrorResponseDto
+// @Failure 422 {object} dto.ErrorResponseDto
+// @Security BearerAuth
+// @Router /api/organisations/{orgId}/users [post]
 func (h *UserHandler) AddUserToOrganisation(ctx *fiber.Ctx) error {
 	// Get the organisation ID from the URL parameters
 	orgId := ctx.Params("orgId")
