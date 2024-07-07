@@ -18,7 +18,7 @@ func StartServer(config config.AppConfig) *fiber.App {
 
 	// Setup CORS
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "http://localhost:80, http://127.0.0.1:7000", // Specify your allowed origins
+		AllowOrigins:     "http://localhost:80, http://127.0.0.1:8098", // Specify your allowed origins
 		AllowCredentials: true,
 	}))
 
