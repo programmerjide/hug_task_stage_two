@@ -89,6 +89,9 @@ func TestGetOrganisationByID(t *testing.T) {
 
 // setupTestEnvironment initializes the test environment and returns AppConfig for testing
 func setupTestEnvironment(t *testing.T) config.AppConfig {
-	// Return the mock configuration instead of loading from environment
-	return MockConfig()
+  cfg, err := config.SetupEnv()
+	if err != nil {
+		t.Fatalf("config file is not loaded properly %v\n", err)
+	}
+	return cfg
 }
